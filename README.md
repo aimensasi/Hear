@@ -1,4 +1,4 @@
-# hear
+# Hear App
 
 A new Flutter project.
 
