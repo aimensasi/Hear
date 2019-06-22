@@ -1,0 +1,1 @@
+export 'package:hear/Models/Conversation.dart';
