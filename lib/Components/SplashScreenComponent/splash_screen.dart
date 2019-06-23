@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+
+// Hear Package...
 import 'package:hear/utils.dart';
+import 'package:hear/models.dart';
+
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -9,12 +13,25 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
-    // Navigator.of(context).pushNamed('/login');
     super.initState();
+  }
+
+  _setup(BuildContext context){
+    Auth.getInstance(onInstance: (Auth auth){
+      if (auth.accessToken == null){
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
+      }else{
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+
+    // Initialize the app
+    _setup(context);
+
     return Scaffold(
       body: Container(
         alignment: Alignment.center,

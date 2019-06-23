@@ -1,9 +1,9 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as Http;
 
 // Hear Package...
 import 'package:hear/Services/Services.dart';
+import 'package:hear/models.dart';
 
 class AuthServices extends Services {
   register(
@@ -21,6 +21,10 @@ class AuthServices extends Services {
     });
   }
 
+  login({String grantType, String email, String password, Function onSuccess, Function onError}){
+    token(grantType: "password", email: email, password: password, onSuccess: onSuccess, onError: onError);
+  }
+
   token({String grantType, String email, String password, Function onSuccess, Function onError}){
     var body = jsonEncode({ 
       "grant_type": grantType, 
@@ -35,8 +39,8 @@ class AuthServices extends Services {
       int statusCode = response.statusCode;
       var responseBody = jsonDecode(response.body);
       if (statusCode == 200){
-        print("Response Body :: $responseBody");
-        
+        Auth auth = Auth.fromJson(responseBody);
+        auth.save();
         onSuccess( );
         return;
       }

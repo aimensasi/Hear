@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:validators/validators.dart';
+
+// Hear Package...
 import 'package:hear/utils.dart';
+import 'package:hear/services.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -11,6 +15,22 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   // Gloable Unique Key to make the form unique
   final _formKey = GlobalKey<FormState>();
+  final Map<String, String> _formData = {};
+
+  void onSubmit(BuildContext context){
+    processingDialog(context);
+    AuthServices().login(
+      email: _formData["email"], 
+      password: _formData["password"],
+      onSuccess: () {
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
+      },
+      onError: (response) {
+        Navigator.of(context).pop();
+        alert(context, title: "Email or password are incorrect", body: "Double check your credentials, something is wrong.");
+      }
+    );
+  }
 
   Widget _buildForm(BuildContext context) {
     return Form(
@@ -31,6 +51,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Colors.white,
                   )),
               keyboardType: TextInputType.emailAddress,
+              validator: (String value) {
+                if (value.isEmpty || !isEmail(value)) {
+                  return "Invalid Email";
+                }
+                return null;
+              },
+              onSaved: (String value) {
+                _formData['email'] = value;
+              },
             ),
             padding: EdgeInsets.only(bottom: 20, left: 20, right: 20),
           ),
@@ -48,6 +77,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   )),
               obscureText: true,
               keyboardType: TextInputType.text,
+              validator: (String value) {
+                if (value.isEmpty || !isLength(value, 6)) {
+                  return "Password must be at least 6 characters";
+                }
+                return null;
+              },
+              onSaved: (String value) {
+                _formData['password'] = value;
+              },
             ),
             padding: EdgeInsets.only(bottom: 20, left: 20, right: 20),
           ),
@@ -59,10 +97,9 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: EdgeInsets.only(left: 90, right: 90, top: 10, bottom: 10),
               textColor: Color(0xFF20272D),
               onPressed: () {
-                // Validate returns true if the form is valid, or false
-                // otherwise.
                 if (_formKey.currentState.validate()) {
-                  // If the form is valid, display a Snackbar.
+                  _formKey.currentState.save();
+                  onSubmit(context);
                 }
 
                 Navigator.of(context).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);

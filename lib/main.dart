@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         fontFamily: "Lato",
         primarySwatch: white,
       ),
-      initialRoute: '/login',
+      initialRoute: '/',
       routes: Routes.routes(),
     );
   }
