@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hear/routes.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() => runApp(MyApp());
+Future main() async {
+	await DotEnv().load('.env');
+	runApp(MyApp());
+}
 
 const MaterialColor white = const MaterialColor(
   0xFFFFFFFF,
@@ -32,7 +36,7 @@ class MyApp extends StatelessWidget {
         fontFamily: "Lato",
         primarySwatch: white,
       ),
-      initialRoute: '/login',
+      initialRoute: '/',
       routes: Routes.routes(),
     );
   }
