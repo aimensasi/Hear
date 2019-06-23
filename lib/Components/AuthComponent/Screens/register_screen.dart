@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:validators/validators.dart';
+
+// Hear Package...
 import 'package:hear/utils.dart';
+import 'package:hear/services.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -10,6 +14,22 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final Map<String, String> _formData = {};
+
+  void onSubmit(BuildContext context){
+    processingDialog(context);
+    AuthServices().register(
+      email: _formData["email"], 
+      password: _formData["password"],
+      onSuccess: () {
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
+      },
+      onError: (response) {
+        Navigator.of(context).pop();
+        alert(context, title: "Email or password are incorrect", body: "Double check your credentials, something is wrong.");
+      }
+    );
+  }
 
   Widget _buildForm(BuildContext context) {
     return Form(
@@ -30,6 +50,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     color: Colors.white,
                   )),
               keyboardType: TextInputType.emailAddress,
+              validator: (String value) {
+                if (value.isEmpty || !isEmail(value)) {
+                  return "Invalid Email";
+                }
+                return null;
+              },
+              onSaved: (String value) {
+                _formData['email'] = value;
+              },
             ),
             padding: EdgeInsets.only(bottom: 20, left: 20, right: 20),
           ),
@@ -47,6 +76,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   )),
               obscureText: true,
               keyboardType: TextInputType.text,
+              validator: (String value) {
+                if (value.isEmpty || !isLength(value, 6)) {
+                  return "Password must be at least 6 characters";
+                }
+                return null;
+              },
+              onSaved: (String value) {
+                _formData['password'] = value;
+              },
             ),
             padding: EdgeInsets.only(bottom: 20, left: 20, right: 20),
           ),
@@ -58,12 +96,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               padding: EdgeInsets.only(left: 90, right: 90, top: 10, bottom: 10),
               textColor: Color(0xFF20272D),
               onPressed: () {
-                // Validate returns true if the form is valid, or false
-                // otherwise.
                 if (_formKey.currentState.validate()) {
-                  // If the form is valid, display a Snackbar.
-                  // Scaffold.of(context)
-                  //     .showSnackBar(SnackBar(content: Text('Processing Data')));
+                  _formKey.currentState.save();
+                  onSubmit(context);
                 }
               },
               child: Text("Register", style: TextStyle(fontSize: 18)),
