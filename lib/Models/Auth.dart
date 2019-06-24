@@ -27,19 +27,28 @@ class Auth {
     prefs.setString('refresh_token', refreshToken);
   }
 
-  getToken({String type = "access_token", Function onValue}) {
+  void getToken({String type = "access_token", Function onValue}) {
     SharedPreferences.getInstance().then((instance) {
       onValue(instance.getString(type));
     });
   }
 
-  static getInstance({Function onInstance}){
+  static void getInstance({Function onInstance}){
     SharedPreferences.getInstance().then((instance) {
       String accessToken = instance.getString("access_token");
       String refreshToken = instance.getString("refresh_token");
       int expiresIn = instance.getInt("expires_in");
       Auth auth = Auth(accessToken: accessToken, refreshToken: refreshToken, expiresIn: expiresIn);
       onInstance(auth);
+    });
+  }
+
+  static void erase({Function done}){
+    SharedPreferences.getInstance().then((instance) {
+      instance.remove("access_token");
+      instance.remove("refresh_token");
+      instance.remove("expires_in");
+      done();
     });
   }
 }

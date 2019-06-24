@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Padding(
             child: TextFormField(
               decoration: InputDecoration(
-                  labelText: "EmailAddress",
+                  labelText: "Email Address",
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.white),
                   ),

@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: EdgeInsets.only(top: 30, bottom: 30),
             child: Text(
               "Conversations",
-              style: TextStyle(fontSize: 25, fontFamily: 'Lato Medium'),
+              style: TextStyle(fontSize: 20, fontFamily: 'Lato Medium'),
             ),
           ),
           Expanded(
@@ -121,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icon(Icons.settings),
                 tooltip: "Settings",
                 onPressed: () {
-                  // Implement on pressed
+                  Navigator.of(context).pushNamed('/setting');
                 },
               )
             ],
