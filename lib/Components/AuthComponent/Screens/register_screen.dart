@@ -40,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Padding(
             child: TextFormField(
               decoration: InputDecoration(
-                  labelText: "EmailAddress",
+                  labelText: "Email Address",
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.white),
                   ),
