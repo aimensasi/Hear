@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hear/utils.dart';
 import 'package:hear/models.dart';
+import 'package:hear/services.dart';
+
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -8,23 +10,35 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Conversation> _conversations = [];
 
   @override
   void initState() {
-    _conversations.addAll([
-      Conversation(id: 1, displayName: "conversation 1"),
-      Conversation(id: 2, displayName: "conversation 2"),
-      Conversation(id: 3, displayName: "conversation 3"),
-      Conversation(id: 4, displayName: "conversation 4"),
-      Conversation(id: 5, displayName: "conversation 5"),
-      Conversation(id: 6, displayName: "conversation 6"),
-      Conversation(id: 7, displayName: "conversation 7"),
-      Conversation(id: 8, displayName: "conversation 8"),
-      Conversation(id: 9, displayName: "conversation 9"),
-      Conversation(id: 10, displayName: "conversation 10"),
-    ]);
+    setDefaults();
     super.initState();
+  }
+
+  void setDefaults(){
+    ConversationServices().conversations(onSuccess: (List<Conversation> conversations) {
+      setState(() {
+        _conversations = conversations;
+      });
+    }, onError: (response) {
+      showSnackBar();
+    });
+  }
+
+  void showSnackBar({content = "Something Went wrong, try again later"}) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(
+        content,
+        style: TextStyle(color: Colors.white),
+      ),
+      duration: Duration(seconds: 2),
+      backgroundColor: Color(0xFF8A9DAB),
+    ));
   }
 
   Widget _emptyList(BuildContext context) {
@@ -70,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
             margin: EdgeInsets.only(bottom: 20, left: 10, right: 10),
             decoration: Decorations.roundedContainer(
                 start: 0xFF2B3237, end: 0xFF2B3237),
-            child: Text(conversation.displayName)));
+            child: Text(conversation.name)));
   }
 
   Widget _buildConversationList(BuildContext context) {
@@ -102,6 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Color(0xFF394247),
       appBar: PreferredSize(
           preferredSize: Size.fromHeight(100),
