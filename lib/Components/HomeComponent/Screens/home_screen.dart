@@ -3,15 +3,14 @@ import 'package:hear/utils.dart';
 import 'package:hear/models.dart';
 import 'package:hear/services.dart';
 
-
 class HomeScreen extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
   List<Conversation> _conversations = [];
 
   @override
@@ -20,12 +19,24 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
-  void setDefaults(){
-    ConversationServices().conversations(onSuccess: (List<Conversation> conversations) {
+  void setDefaults() {
+    ConversationServices().conversations(
+        onSuccess: (List<Conversation> conversations) {
       setState(() {
         _conversations = conversations;
       });
-    }, onError: (response) {
+    }, onError: (error) {
+      print(error);
+      showSnackBar();
+    });
+  }
+
+  void _onCreateConversation(BuildContext context) {
+    ConversationServices().create(onSuccess: (Conversation conversation) {
+      setState(() {
+        _conversations.add(conversation);
+      });
+    }, onError: (error) {
       showSnackBar();
     });
   }
@@ -64,7 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
             padding: EdgeInsets.only(left: 90, right: 90, top: 10, bottom: 10),
             textColor: Color(0xFFFFFFFF),
-            onPressed: () {},
+            onPressed: () {
+              _onCreateConversation(context);
+            },
             child: Text("Start a Conversation", style: TextStyle(fontSize: 14)),
           ),
         )
@@ -101,9 +114,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemBuilder: _buildConversationListItem,
-              itemCount: _conversations.length,
+            child: RefreshIndicator(
+              key: _refreshIndicatorKey,
+              onRefresh: () {
+                setDefaults();
+                return new Future.delayed(const Duration(seconds: 2), () {});
+              },
+              child: ListView.builder(
+                itemBuilder: _buildConversationListItem,
+                itemCount: _conversations.length,
+              ),
             ),
           ),
         ],
@@ -147,7 +167,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: _buildConversationList(context),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          _onCreateConversation(context);
+        },
         child: Icon(
           Icons.hearing,
           color: Colors.white,

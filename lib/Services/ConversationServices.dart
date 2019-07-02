@@ -16,7 +16,24 @@ class ConversationServices extends Services {
         var responseBody = jsonDecode(response.body);
         if (statusCode == 200) {
           Iterable responseItems = responseBody; 
-          List<Conversation> conversation = responseItems.map((item) => Conversation.fromJson(item)).toList();
+          List<Conversation> conversations = responseItems.map((item) => Conversation.fromJson(item)).toList();
+          onSuccess(conversations);
+          return;
+        }
+        onError(responseBody);
+      });
+    });
+  }
+
+  void create({Function onSuccess, Function onError}){
+    Auth.getInstance(onInstance: (Auth auth) {
+      HEADERS["Authorization"] = "Bearer ${auth.accessToken}";
+
+      Http.post("$HOST/conversations", headers: HEADERS).then((response) {
+        int statusCode = response.statusCode;
+        var responseBody = jsonDecode(response.body);
+        if (statusCode == 200) {
+          Conversation conversation = Conversation.fromJson(responseBody);
           onSuccess(conversation);
           return;
         }
