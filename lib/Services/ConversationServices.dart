@@ -59,4 +59,22 @@ class ConversationServices extends Services {
     });
   }
 
+  send({ int id, String message, Function onSuccess, onError }){
+    Auth.getInstance(onInstance: (Auth auth) {
+      HEADERS["Authorization"] = "Bearer ${auth.accessToken}";
+      var body = jsonEncode({ "message": message });
+      
+      Http.post("$HOST/conversations/$id/messages", headers: HEADERS, body: body).then((response) {
+        int statusCode = response.statusCode;
+        var responseBody = jsonDecode(response.body);
+        if (statusCode == 200) {
+          Message message = Message.fromJson(responseBody);
+          onSuccess(message);
+          return;
+        }
+        onError(responseBody);
+      });
+    });
+  }
+
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:hear/utils.dart';
@@ -10,10 +12,18 @@ class ConversationScreen extends StatefulWidget {
 }
 
 class _ConversationScreenState extends State<ConversationScreen> {
+  final ScrollController _listViewController = ScrollController();
+  final TextEditingController _messageTextFieldController =
+      TextEditingController();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  // conversation id
   int _id;
+  bool isTrue =
+      false; // change this later to be used in controlling the microphone
   Conversation _conversation = Conversation();
   List<Message> _messages = [];
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +46,21 @@ class _ConversationScreenState extends State<ConversationScreen> {
         onError: (error) {
           showSnackBar();
         });
+  }
+
+  void onSend(BuildContext context, String message) {
+    if (message.isEmpty){
+      showSnackBar(content: "Please provide a message to translate");
+      return;
+    }
+    ConversationServices().send(id: _conversation.id, message: message, onSuccess: (Message message) {
+      setState(() {
+        _messages.add(message);
+      });
+    }, onError: (error) {
+      print("Server Error :: $error");
+      showSnackBar();
+    });
   }
 
   void showSnackBar({content = "Something Went wrong, try again later"}) {
@@ -86,13 +111,64 @@ class _ConversationScreenState extends State<ConversationScreen> {
   }
 
   Widget _buildMessageListComponent(BuildContext context) {
+    Timer(Duration(seconds: 1), () {
+      _listViewController.jumpTo(_listViewController.position.maxScrollExtent);
+    });
     return Expanded(
       child: ListView.builder(
-          itemBuilder: _buildMessagesListItem, itemCount: _messages.length),
+          controller: _listViewController,
+          itemBuilder: _buildMessagesListItem,
+          itemCount: _messages.length),
     );
   }
 
   Widget _buildRecorderComponent(BuildContext context) {
+    List<Widget> widget;
+    if (isTrue) {
+      widget = [
+        SpinKitWave(
+          color: Colors.white,
+          size: 20.0,
+        ),
+        Padding(
+          padding: EdgeInsets.only(left: 20, right: 20),
+          child: Text(''),
+        ),
+        InkWell(
+          child: Icon(
+            Icons.stop,
+            color: Colors.white,
+          ),
+          onTap: () {
+            setState(() {
+              isTrue = false;
+            });
+          },
+        )
+      ];
+    } else {
+      widget = [
+        Text("Microphone is off"),
+        Padding(
+          padding: EdgeInsets.only(left: 20, right: 20),
+          child: Text(''),
+        ),
+        InkWell(
+          child: Icon(
+            Icons.mic,
+            color: Colors.white,
+          ),
+          onTap: () {
+            print("Tab $isTrue");
+            setState(() {
+              isTrue = true;
+            });
+            print("Tab $isTrue");
+          },
+        )
+      ];
+    }
+
     return Container(
       alignment: Alignment.center,
       margin: EdgeInsets.only(top: 20, bottom: 20, left: 60, right: 60),
@@ -100,22 +176,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       decoration: Decorations.recorderContainer(),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          SpinKitWave(
-            color: Colors.white,
-            size: 20.0,
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 20, right: 20),
-            child: Text(''),
-          ),
-          InkWell(
-            child: Icon(Icons.stop, color: Colors.white,),
-            onTap: () {
-              print("Record");
-            },
-          )
-        ],
+        children: widget,
       ),
     );
   }
@@ -135,9 +196,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     SizedBox(width: 20),
                     Expanded(
                       child: TextField(
+                        controller: _messageTextFieldController,
                         decoration: InputDecoration(
                           hintText: 'Say Something...',
-                          hintStyle: TextStyle(color: Colors.white, fontSize: 14),
+                          hintStyle:
+                              TextStyle(color: Colors.white, fontSize: 14),
                           border: InputBorder.none,
                         ),
                       ),
@@ -150,10 +213,16 @@ class _ConversationScreenState extends State<ConversationScreen> {
           ),
           SizedBox(width: 5),
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              onSend(context, _messageTextFieldController.text);
+            },
             child: CircleAvatar(
               backgroundColor: Color(0xFF889BAB),
-              child: Icon(Icons.send, color: Colors.white, size: 20,),
+              child: Icon(
+                Icons.send,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -165,7 +234,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     return Column(
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.only(top: 30, bottom: 30),
+          padding: EdgeInsets.only(top: 20, bottom: 20),
           child: Text(
             "${_conversation.name}",
             style: TextStyle(fontSize: 20, fontFamily: 'Lato Medium'),
