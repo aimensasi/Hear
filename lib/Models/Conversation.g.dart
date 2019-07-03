@@ -14,7 +14,11 @@ Conversation _$ConversationFromJson(Map<String, dynamic> json) {
       language: json['language'] as String,
       createdAt: json['created_at'] == null
           ? null
-          : DateTime.parse(json['created_at'] as String));
+          : DateTime.parse(json['created_at'] as String))
+    ..messages = (json['messages'] as List)
+        ?.map((e) =>
+            e == null ? null : Message.fromJson(e as Map<String, dynamic>))
+        ?.toList();
 }
 
 Map<String, dynamic> _$ConversationToJson(Conversation instance) =>
@@ -23,5 +27,6 @@ Map<String, dynamic> _$ConversationToJson(Conversation instance) =>
       'name': instance.name,
       'display_name': instance.displayName,
       'language': instance.language,
-      'created_at': instance.createdAt?.toIso8601String()
+      'created_at': instance.createdAt?.toIso8601String(),
+      'messages': instance.messages
     };

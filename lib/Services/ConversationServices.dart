@@ -25,6 +25,23 @@ class ConversationServices extends Services {
     });
   }
 
+  void conversation({int id, Function onSuccess, Function onError}){
+    Auth.getInstance(onInstance: (Auth auth) {
+      HEADERS["Authorization"] = "Bearer ${auth.accessToken}";
+
+      Http.get("$HOST/conversations/$id", headers: HEADERS).then((response) {
+        int statusCode = response.statusCode;
+        var responseBody = jsonDecode(response.body);
+        if (statusCode == 200) {
+          Conversation conversation = Conversation.fromJson(responseBody);
+          onSuccess(conversation);
+          return;
+        }
+        onError(responseBody);
+      });
+    });
+  }
+
   void create({Function onSuccess, Function onError}){
     Auth.getInstance(onInstance: (Auth auth) {
       HEADERS["Authorization"] = "Bearer ${auth.accessToken}";
@@ -41,4 +58,5 @@ class ConversationServices extends Services {
       });
     });
   }
+
 }

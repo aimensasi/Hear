@@ -89,14 +89,13 @@ class _HomeScreenState extends State<HomeScreen> {
     Conversation conversation = _conversations[index];
     return GestureDetector(
         onTap: () {
-          // handle list item tap
+          Navigator.of(context).pushNamed('/conversation', arguments: conversation.id);
         },
         child: Container(
             alignment: Alignment.centerLeft,
             padding: EdgeInsets.all(20),
             margin: EdgeInsets.only(bottom: 20, left: 10, right: 10),
-            decoration: Decorations.roundedContainer(
-                start: 0xFF2B3237, end: 0xFF2B3237),
+            decoration: Decorations.roundedContainer(start: 0xFF2B3237, end: 0xFF2B3237),
             child: Text(conversation.name)));
   }
 

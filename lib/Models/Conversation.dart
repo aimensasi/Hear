@@ -1,3 +1,4 @@
+import 'package:hear/Models/Message.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'Conversation.g.dart';
@@ -11,6 +12,7 @@ class Conversation{
   String language;
   @JsonKey(name: 'created_at')
   DateTime createdAt;
+  List<Message> messages;
 
   Conversation({this.id, this.name, this.displayName, this.language, this.createdAt});
 
