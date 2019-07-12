@@ -10,6 +10,7 @@ class Routes {
       '/register': (BuildContext context) => RegisterScreen(),
       '/home': (BuildContext context) => HomeScreen(),
       '/setting': (BuildContext context) => AccountSettingScreen(),
+      '/conversation': (BuildContext context) => ConversationScreen(),
     };
   }
 }

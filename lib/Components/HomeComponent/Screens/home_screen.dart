@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hear/utils.dart';
 import 'package:hear/models.dart';
+import 'package:hear/services.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -8,23 +9,47 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
   List<Conversation> _conversations = [];
 
   @override
   void initState() {
-    _conversations.addAll([
-      Conversation(id: 1, displayName: "conversation 1"),
-      Conversation(id: 2, displayName: "conversation 2"),
-      Conversation(id: 3, displayName: "conversation 3"),
-      Conversation(id: 4, displayName: "conversation 4"),
-      Conversation(id: 5, displayName: "conversation 5"),
-      Conversation(id: 6, displayName: "conversation 6"),
-      Conversation(id: 7, displayName: "conversation 7"),
-      Conversation(id: 8, displayName: "conversation 8"),
-      Conversation(id: 9, displayName: "conversation 9"),
-      Conversation(id: 10, displayName: "conversation 10"),
-    ]);
+    setDefaults();
     super.initState();
+  }
+
+  void setDefaults() {
+    ConversationServices().conversations(
+        onSuccess: (List<Conversation> conversations) {
+      setState(() {
+        _conversations = conversations;
+      });
+    }, onError: (error) {
+      print(error);
+      showSnackBar();
+    });
+  }
+
+  void _onCreateConversation(BuildContext context) {
+    ConversationServices().create(onSuccess: (Conversation conversation) {
+      setState(() {
+        _conversations.add(conversation);
+      });
+    }, onError: (error) {
+      showSnackBar();
+    });
+  }
+
+  void showSnackBar({content = "Something Went wrong, try again later"}) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(
+        content,
+        style: TextStyle(color: Colors.white),
+      ),
+      duration: Duration(seconds: 2),
+      backgroundColor: Color(0xFF8A9DAB),
+    ));
   }
 
   Widget _emptyList(BuildContext context) {
@@ -50,7 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
             padding: EdgeInsets.only(left: 90, right: 90, top: 10, bottom: 10),
             textColor: Color(0xFFFFFFFF),
-            onPressed: () {},
+            onPressed: () {
+              _onCreateConversation(context);
+            },
             child: Text("Start a Conversation", style: TextStyle(fontSize: 14)),
           ),
         )
@@ -62,15 +89,14 @@ class _HomeScreenState extends State<HomeScreen> {
     Conversation conversation = _conversations[index];
     return GestureDetector(
         onTap: () {
-          // handle list item tap
+          Navigator.of(context).pushNamed('/conversation', arguments: conversation.id);
         },
         child: Container(
             alignment: Alignment.centerLeft,
             padding: EdgeInsets.all(20),
             margin: EdgeInsets.only(bottom: 20, left: 10, right: 10),
-            decoration: Decorations.roundedContainer(
-                start: 0xFF2B3237, end: 0xFF2B3237),
-            child: Text(conversation.displayName)));
+            decoration: Decorations.roundedContainer(start: 0xFF2B3237, end: 0xFF2B3237),
+            child: Text(conversation.name)));
   }
 
   Widget _buildConversationList(BuildContext context) {
@@ -87,9 +113,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemBuilder: _buildConversationListItem,
-              itemCount: _conversations.length,
+            child: RefreshIndicator(
+              key: _refreshIndicatorKey,
+              onRefresh: () {
+                setDefaults();
+                return new Future.delayed(const Duration(seconds: 2), () {});
+              },
+              child: ListView.builder(
+                itemBuilder: _buildConversationListItem,
+                itemCount: _conversations.length,
+              ),
             ),
           ),
         ],
@@ -102,6 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Color(0xFF394247),
       appBar: PreferredSize(
           preferredSize: Size.fromHeight(100),
@@ -132,7 +166,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: _buildConversationList(context),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          _onCreateConversation(context);
+        },
         child: Icon(
           Icons.hearing,
           color: Colors.white,
