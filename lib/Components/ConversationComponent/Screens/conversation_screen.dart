@@ -49,17 +49,34 @@ class _ConversationScreenState extends State<ConversationScreen> {
   }
 
   void onSend(BuildContext context, String message) {
-    if (message.isEmpty){
+    if (message.isEmpty) {
       showSnackBar(content: "Please provide a message to translate");
       return;
     }
-    ConversationServices().send(id: _conversation.id, message: message, onSuccess: (Message message) {
-      setState(() {
-        _messages.add(message);
-      });
-    }, onError: (error) {
-      print("Server Error :: $error");
-      showSnackBar();
+    ConversationServices().send(
+        id: _conversation.id,
+        message: message,
+        onSuccess: (Message message) {
+          setState(() {
+            _messages.add(message);
+            _messageTextFieldController.clear();
+          });
+        },
+        onError: (error) {
+          print("Server Error :: $error");
+          showSnackBar();
+        });
+  }
+
+  void onStartRecording(BuildContext context) {
+    setState(() {
+      isTrue = true;
+    });
+  }
+
+  void onStopRecording(BuildContext context) {
+    setState(() {
+      isTrue = false;
     });
   }
 
@@ -111,7 +128,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   }
 
   Widget _buildMessageListComponent(BuildContext context) {
-    Timer(Duration(seconds: 1), () {
+    Timer(Duration(milliseconds: 500), () {
       _listViewController.jumpTo(_listViewController.position.maxScrollExtent);
     });
     return Expanded(
@@ -141,7 +158,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
           ),
           onTap: () {
             setState(() {
-              isTrue = false;
+              onStopRecording(context);
             });
           },
         )
@@ -159,11 +176,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             color: Colors.white,
           ),
           onTap: () {
-            print("Tab $isTrue");
-            setState(() {
-              isTrue = true;
-            });
-            print("Tab $isTrue");
+            onStartRecording(context);
           },
         )
       ];
