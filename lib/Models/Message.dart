@@ -10,6 +10,7 @@ class Message{
   @JsonKey(name: 'created_at')
   DateTime createdAt;
 
+
   Message({this.id, this.message, this.mine, this.createdAt});
 
   factory Message.fromJson(Map<String, dynamic> json) => _$MessageFromJson(json);
