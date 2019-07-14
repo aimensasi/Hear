@@ -172,6 +172,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_tts:
+    dependency: "direct main"
+    description:
+      path: "packages/flutter_tts-0.2.6"
+      relative: true
+    source: path
+    version: "0.2.6"
   front_end:
     dependency: transitive
     description:
