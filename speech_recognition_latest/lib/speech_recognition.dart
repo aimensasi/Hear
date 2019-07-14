@@ -28,6 +28,8 @@ class SpeechRecognition {
 
   VoidCallback recognitionCompleteHandler;
 
+  VoidCallback noMatchFoundHandler;
+
   /// ask for speech  recognizer permission
   Future activate() => _channel.invokeMethod("speech.activate");
 
@@ -57,6 +59,9 @@ class SpeechRecognition {
       case "speech.onRecognitionComplete":
         recognitionCompleteHandler();
         break;
+      case "speech.noMatch":
+        onNoMatch(call.arguments);
+        break;
       default:
         print('Unknowm method ${call.method} ');
     }
@@ -80,4 +85,7 @@ class SpeechRecognition {
 
   void setCurrentLocaleHandler(StringResultHandler handler) =>
       currentLocaleHandler = handler;
+
+  void onNoMatch(VoidCallback handler) => 
+      noMatchFoundHandler = handler;
 }

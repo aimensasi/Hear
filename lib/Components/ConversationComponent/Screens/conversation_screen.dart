@@ -8,6 +8,7 @@ import 'package:hear/models.dart';
 import 'package:hear/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_recognition/speech_recognition.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class ConversationScreen extends StatefulWidget {
   @override
@@ -22,9 +23,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   PermissionStatus _permissionStatus = PermissionStatus.unknown;
   SpeechRecognition _speechRecognition;
+  FlutterTts _flutterTts;
 
   bool _isAvailable = false;
   bool _isListening = false;
+  bool _isSpeaking = false;
 
   // conversation id
   int _id;
@@ -59,10 +62,17 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   void initSpeechRecognition() {
     _speechRecognition = SpeechRecognition();
+    _flutterTts = FlutterTts();
 
     _speechRecognition.setAvailabilityHandler((bool result) {
+      if(result == false){
+        showSnackBar(content: "Speech Recognition is not available on this phone");
+      }
       setState(() {
         _isAvailable = result;
+        if(_isListening){
+          _isListening = false;
+        }
       });
     });
 
@@ -303,7 +313,17 @@ class _ConversationScreenState extends State<ConversationScreen> {
           SizedBox(width: 5),
           GestureDetector(
             onTap: () {
+              if(_isListening){
+                onStopRecording(context);
+              }
               onSend(context, message: _messageTextFieldController.text);
+              _flutterTts.speak(_messageTextFieldController.text).then((result){
+                if(result == 1){
+                  setState(() {
+                    _isSpeaking = true;
+                  });
+                }
+              });
             },
             child: CircleAvatar(
               backgroundColor: Color(0xFF889BAB),
