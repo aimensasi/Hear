@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:hear/utils.dart';
 import 'package:hear/models.dart';
 import 'package:hear/services.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_recognition/speech_recognition.dart';
 
 class ConversationScreen extends StatefulWidget {
   @override
@@ -17,45 +20,89 @@ class _ConversationScreenState extends State<ConversationScreen> {
       TextEditingController();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  PermissionStatus _permissionStatus = PermissionStatus.unknown;
+  SpeechRecognition _speechRecognition;
+
+  bool _isAvailable = false;
+  bool _isListening = false;
+
   // conversation id
   int _id;
-  bool isTrue =
-      false; // change this later to be used in controlling the microphone
   Conversation _conversation = Conversation();
   List<Message> _messages = [];
+  Message _currentMessage;
 
   @override
   void initState() {
     super.initState();
+    _currentMessage = Message(message: "", mine: false);
+    requestPermission();
   }
 
-  void setDefaults() {
-    if (_conversation.name != null) {
-      return;
-    }
-    _id = ModalRoute.of(context).settings.arguments;
+  void requestPermission() {
+    PermissionHandler().requestPermissions([PermissionGroup.microphone]).then(
+        (Map<PermissionGroup, PermissionStatus> result) {
+      var status = result.values.first;
+      setState(() {
+        _permissionStatus = status;
+      });
 
-    ConversationServices().conversation(
-        id: _id,
-        onSuccess: (Conversation conversation) {
-          setState(() {
-            _conversation = conversation;
-            _messages = conversation.messages;
-          });
-        },
-        onError: (error) {
-          showSnackBar();
-        });
+      if (status == PermissionStatus.granted) {
+        initSpeechRecognition();
+      } else {
+        showSnackBar(
+            content:
+                "Please Enable Microphone Permission To Be Able Use This Feature");
+      }
+    });
   }
 
-  void onSend(BuildContext context, String message) {
+  void initSpeechRecognition() {
+    _speechRecognition = SpeechRecognition();
+
+    _speechRecognition.setAvailabilityHandler((bool result) {
+      setState(() {
+        _isAvailable = result;
+      });
+    });
+
+    _speechRecognition.setRecognitionStartedHandler(() {
+      setState(() {
+        _isListening = true;
+      });
+    });
+
+    _speechRecognition.setRecognitionResultHandler((String speech) {
+      setState(() {
+        _currentMessage.message = speech;
+      });
+    });
+
+    _speechRecognition.setRecognitionCompleteHandler(() {
+      onSend(context, message: _currentMessage.message, mine: false);
+      setState(() {
+        _isListening = false;
+        _currentMessage.message = "";
+      });
+    });
+
+    _speechRecognition.activate().then((result) {
+      setState(() {
+        _isAvailable = result;
+      });
+    });
+  }
+
+  void onSend(BuildContext context, {String message, bool mine = true}) {
     if (message.isEmpty) {
       showSnackBar(content: "Please provide a message to translate");
       return;
     }
+
     ConversationServices().send(
         id: _conversation.id,
         message: message,
+        mine: mine,
         onSuccess: (Message message) {
           setState(() {
             _messages.add(message);
@@ -68,16 +115,29 @@ class _ConversationScreenState extends State<ConversationScreen> {
         });
   }
 
-  void onStartRecording(BuildContext context) {
-    setState(() {
-      isTrue = true;
-    });
+  void onStartRecording(BuildContext context) async {
+    if (!_isAvailable) {
+      showSnackBar(content: "Something Went Wrong, please try again later");
+    }
+    if (!_isListening) {
+      _speechRecognition
+          .listen(locale: "en_US")
+          .then((result) => print('$result'));
+    }
   }
 
-  void onStopRecording(BuildContext context) {
-    setState(() {
-      isTrue = false;
-    });
+  void onStopRecording(BuildContext context) async {
+    if (_isListening) {
+      _speechRecognition.cancel().then((result) {
+        if (Platform.isIOS) {
+          onSend(context, message: _currentMessage.message, mine: false);
+          setState(() {
+            _currentMessage.message = "";
+            _isListening = result;
+          });
+        }
+      });
+    }
   }
 
   void showSnackBar({content = "Something Went wrong, try again later"}) {
@@ -91,45 +151,61 @@ class _ConversationScreenState extends State<ConversationScreen> {
     ));
   }
 
+  Widget _leftSideComponent(BuildContext context, Message message) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      padding: EdgeInsets.all(20),
+      margin: EdgeInsets.only(bottom: 20, left: 10, right: 35),
+      decoration:
+          Decorations.leftMessageContainer(start: 0xFF889BAB, end: 0xFF889BAB),
+      child: Text(
+        message.message,
+        style: TextStyle(fontSize: 14, height: 1.25),
+      ),
+    );
+  }
+
+  Widget _rightSideComponent(BuildContext context, Message message) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      padding: EdgeInsets.all(20),
+      margin: EdgeInsets.only(bottom: 15, left: 35, right: 10),
+      decoration:
+          Decorations.rightMessageContainer(start: 0xFF2B3237, end: 0xFF2B3237),
+      child: Text(
+        message.message,
+        style: TextStyle(fontSize: 14, height: 1.25),
+      ),
+    );
+  }
+
   Widget _buildMessagesListItem(BuildContext context, int index) {
     Message message = _messages[index];
-    print("Message ID :: ${message.id}, Type :: ${message.mine}");
     Widget widget;
-
+    print("Min Message ${message.mine}");
     if (message.mine) {
-      widget = Container(
-        alignment: Alignment.centerLeft,
-        padding: EdgeInsets.all(20),
-        margin: EdgeInsets.only(bottom: 15, left: 35, right: 10),
-        decoration: Decorations.rightMessageContainer(
-            start: 0xFF2B3237, end: 0xFF2B3237),
-        child: Text(
-          message.message,
-          style: TextStyle(fontSize: 14, height: 1.25),
-        ),
-      );
+      widget = _rightSideComponent(context, message);
     } else {
-      widget = Container(
-        child: widget = Container(
-          alignment: Alignment.centerLeft,
-          padding: EdgeInsets.all(20),
-          margin: EdgeInsets.only(bottom: 20, left: 10, right: 35),
-          decoration: Decorations.leftMessageContainer(
-              start: 0xFF889BAB, end: 0xFF889BAB),
-          child: Text(
-            message.message,
-            style: TextStyle(fontSize: 14, height: 1.25),
-          ),
-        ),
-      );
+      widget = _leftSideComponent(context, message);
     }
 
     return widget;
   }
 
   Widget _buildMessageListComponent(BuildContext context) {
+    if (_isListening) {
+      return Expanded(
+        child: SingleChildScrollView(
+          child: _leftSideComponent(context, _currentMessage),
+        ),
+      );
+    }
+
     Timer(Duration(milliseconds: 500), () {
-      _listViewController.jumpTo(_listViewController.position.maxScrollExtent);
+      if (_messages.length > 0) {
+        _listViewController
+            .jumpTo(_listViewController.position.maxScrollExtent);
+      }
     });
     return Expanded(
       child: ListView.builder(
@@ -141,7 +217,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   Widget _buildRecorderComponent(BuildContext context) {
     List<Widget> widget;
-    if (isTrue) {
+    if (_isListening) {
       widget = [
         SpinKitWave(
           color: Colors.white,
@@ -227,7 +303,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
           SizedBox(width: 5),
           GestureDetector(
             onTap: () {
-              onSend(context, _messageTextFieldController.text);
+              onSend(context, message: _messageTextFieldController.text);
             },
             child: CircleAvatar(
               backgroundColor: Color(0xFF889BAB),
@@ -245,6 +321,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   Widget buildComponents(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         Padding(
           padding: EdgeInsets.only(top: 20, bottom: 20),
@@ -296,5 +375,24 @@ class _ConversationScreenState extends State<ConversationScreen> {
         child: buildComponents(context),
       ),
     );
+  }
+
+  void setDefaults() {
+    if (_conversation.name != null) {
+      return;
+    }
+    _id = ModalRoute.of(context).settings.arguments;
+
+    ConversationServices().conversation(
+        id: _id,
+        onSuccess: (Conversation conversation) {
+          setState(() {
+            _conversation = conversation;
+            _messages = conversation.messages;
+          });
+        },
+        onError: (error) {
+          showSnackBar();
+        });
   }
 }
