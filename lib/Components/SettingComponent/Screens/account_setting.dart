@@ -14,8 +14,9 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
   // Gloable Unique Key to make the form unique
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  final Map<String, String> _formData = {"language": "Spanish"};
-  final List<String> _languages = <String>["English", "French", "Spanish"];
+  final Map<String, String> _formData = {};
+  // final List<String> _languages = <String>["English", "French", "Spanish"];
+  User _currentUser = User();
 
   TextEditingController _newPasswordController = TextEditingController();
   TextEditingController _currentPasswordController = TextEditingController();
@@ -24,7 +25,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
   void initState() {
     UserServices().currentUser(onSuccess: (User user) {
       setState(() {
-        _formData['language'] = user.language;
+        _currentUser = user;
       });
     }, onError: (response) {
       showSnackBar();
@@ -65,38 +66,42 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
     return ListView(
       padding: EdgeInsets.all(20),
       children: <Widget>[
-        FormField(builder: (FormFieldState state) {
-          return InputDecorator(
-            decoration: InputDecoration(
-              labelText: 'Language',
-              labelStyle: TextStyle(fontSize: 20, color: Colors.white),
-            ),
-            isEmpty: _formData['language'] == "",
-            child: Padding(
-              padding: EdgeInsets.only(top: 15),
-              child: new DropdownButtonHideUnderline(
-                child: new DropdownButton(
-                  isDense: true,
-                  value: _formData['language'],
-                  onChanged: (String value) {
-                    setState(() {
-                      _formData['language'] = value;
-                    });
-                  },
-                  items: _languages.map((String language) {
-                    return DropdownMenuItem(
-                      value: language,
-                      child: new Text(language),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          );
-        }),
+        // FormField(builder: (FormFieldState state) {
+        //   return InputDecorator(
+        //     decoration: InputDecoration(
+        //       labelText: 'Language',
+        //       labelStyle: TextStyle(fontSize: 20, color: Colors.white),
+        //     ),
+        //     isEmpty: _formData['language'] == "",
+        //     child: Padding(
+        //       padding: EdgeInsets.only(top: 15),
+        //       child: new DropdownButtonHideUnderline(
+        //         child: new DropdownButton(
+        //           isDense: true,
+        //           value: _formData['language'],
+        //           onChanged: (String value) {
+        //             setState(() {
+        //               _formData['language'] = value;
+        //             });
+        //           },
+        //           items: _languages.map((String language) {
+        //             return DropdownMenuItem(
+        //               value: language,
+        //               child: new Text(language),
+        //             );
+        //           }).toList(),
+        //         ),
+        //       ),
+        //     ),
+        //   );
+        // }),
         Padding(
-          padding: EdgeInsets.only(top: 50, bottom: 20),
-          child: Text("Change Password"),
+          padding: EdgeInsets.only(top: 20, bottom: 20),
+          child: Text("Email Address: ${_currentUser.email}", style: TextStyle(fontSize: 14),),
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: 20, bottom: 20),
+          child: Text("Change Password", style: TextStyle(fontSize: 18),),
         ),
         Padding(
           child: TextFormField(
