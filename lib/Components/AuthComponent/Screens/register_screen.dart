@@ -16,19 +16,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, String> _formData = {};
 
-  void onSubmit(BuildContext context){
+  FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _focusNode.dispose();
+  }
+
+  void onSubmit(BuildContext context) {
     processingDialog(context);
     AuthServices().register(
-      email: _formData["email"], 
-      password: _formData["password"],
-      onSuccess: () {
-        Navigator.of(context).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
-      },
-      onError: (response) {
-        Navigator.of(context).pop();
-        alert(context, title: "Email or password are incorrect", body: "Double check your credentials, something is wrong.");
-      }
-    );
+        email: _formData["email"],
+        password: _formData["password"],
+        onSuccess: () {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+              '/home', (Route<dynamic> route) => false);
+        },
+        onError: (response) {
+          Navigator.of(context).pop();
+          alert(context,
+              title: "Email or password are incorrect",
+              body: "Double check your credentials, something is wrong.");
+        });
   }
 
   Widget _buildForm(BuildContext context) {
@@ -39,6 +55,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: <Widget>[
           Padding(
             child: TextFormField(
+              textInputAction: TextInputAction.next,
+              onFieldSubmitted: (v) {
+                FocusScope.of(context).requestFocus(_focusNode);
+              },
               decoration: InputDecoration(
                   labelText: "Email Address",
                   focusedBorder: UnderlineInputBorder(
@@ -64,6 +84,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           Padding(
             child: TextFormField(
+              focusNode: _focusNode,
+              textInputAction: TextInputAction.done,
               decoration: InputDecoration(
                   labelText: "Password",
                   focusedBorder: UnderlineInputBorder(
@@ -92,8 +114,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             alignment: Alignment.center,
             margin: EdgeInsets.only(top: 30),
             child: RaisedButton(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
-              padding: EdgeInsets.only(left: 90, right: 90, top: 10, bottom: 10),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(40)),
+              padding:
+                  EdgeInsets.only(left: 90, right: 90, top: 10, bottom: 10),
               textColor: Color(0xFF20272D),
               onPressed: () {
                 if (_formKey.currentState.validate()) {
@@ -108,9 +132,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             alignment: Alignment.center,
             margin: EdgeInsets.only(top: 30),
             child: OutlineButton(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(40)),
               borderSide: BorderSide(color: Colors.white),
-              padding: EdgeInsets.only(left: 100, right: 100, top: 10, bottom: 10),
+              padding:
+                  EdgeInsets.only(left: 100, right: 100, top: 10, bottom: 10),
               onPressed: () {
                 Navigator.of(context).pushNamed('/login');
               },
@@ -128,30 +154,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Container(
           alignment: Alignment.center,
           decoration: Decorations.background(),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Column(
-                    children: <Widget>[
-                      Container(
-                        margin: EdgeInsets.only(bottom: 120),
-                        child: Image.asset('assets/images/logo.png'),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: _buildForm(context),
-                  )
-                ],
-              )
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Column(
+                      children: <Widget>[
+                        Container(
+                          margin: EdgeInsets.only(bottom: 120),
+                          child: Image.asset('assets/images/logo.png'),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _buildForm(context),
+                    )
+                  ],
+                )
+              ],
+            ),
           )),
     );
   }
