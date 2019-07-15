@@ -384,7 +384,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 icon: Icon(Icons.settings),
                 tooltip: "Settings",
                 onPressed: () {
-                  Navigator.of(context).pushNamed('/conversation/setting');
+                  Navigator.of(context).pushNamed('/conversation/setting', arguments: _conversation.id);
                 },
               )
             ],

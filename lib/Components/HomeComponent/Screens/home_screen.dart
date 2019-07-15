@@ -35,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ConversationServices().create(onSuccess: (Conversation conversation) {
       setState(() {
         _conversations.add(conversation);
+        Navigator.of(context).pushNamed('/conversation', arguments: conversation.id);
       });
     }, onError: (error) {
       showSnackBar();

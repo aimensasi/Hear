@@ -11,6 +11,7 @@ class Routes {
       '/home': (BuildContext context) => HomeScreen(),
       '/setting': (BuildContext context) => AccountSettingScreen(),
       '/conversation': (BuildContext context) => ConversationScreen(),
+      '/conversation/setting': (BuildContext context) => ConversationSettingScreen(),
     };
   }
 }

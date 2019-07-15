@@ -100,10 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (_formKey.currentState.validate()) {
                   _formKey.currentState.save();
                   onSubmit(context);
-                }
-
-                Navigator.of(context).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
-                
+                }                
               },
               child: Text("Login", style: TextStyle(fontSize: 18)),
             ),
