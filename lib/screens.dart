@@ -12,3 +12,4 @@ export 'package:hear/Components/SettingComponent/Screens/account_setting.dart';
 
 // Conversation Screens
 export 'package:hear/Components/ConversationComponent/Screens/conversation_screen.dart';
+export 'package:hear/Components/ConversationComponent/Screens/conversation_setting_screen.dart';
